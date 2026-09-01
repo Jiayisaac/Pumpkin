@@ -1,0 +1,14 @@
+[Unit]
+Description=LED Flame Application for Halloween Pumpkin
+After=multi-user.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/pumpkin
+ExecStart=/home/pi/pumpkin/venv/bin/python /home/pi/pumpkin/app.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
