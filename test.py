@@ -1,6 +1,7 @@
 """Visual test application for the Flame class."""
 
 import tkinter as tk
+import time
 
 from flame import Flame
 
@@ -25,8 +26,8 @@ class FlameTestApp:
         self.root.configure(bg=WINDOW_BACKGROUND)
 
         self.flame = Flame(
+            None,
             led_num=LED_COUNT,
-            update_time_ms=30,
         )
 
         self.canvas = tk.Canvas(
@@ -49,9 +50,10 @@ class FlameTestApp:
             self._on_close,
         )
 
-        self.flame.start()
-
-        self._update_display()
+        while True:
+            self.flame.update(test=True)
+            self._update_display()
+            time.sleep(0.01)
 
     def _create_led_boxes(self):
         """Create graphical boxes representing each LED."""
