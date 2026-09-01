@@ -8,14 +8,14 @@ from dataclasses import dataclass, field
 @dataclass
 class Colour:
     """Dataclass to hold colour settings"""
-    name: str = None
+    name: str | None= None
     hex: int = 0
     p: float = 0.0
 
 @dataclass
 class Flicker:
     """Dataclass to hold flicker settings"""
-    name: str = None
+    name: str | None = None
     p: float = 0.0
     min_ms: int = 0
     max_ms: int = 0
@@ -73,7 +73,7 @@ class Flame:
 
     def __init__(self,
                  pixels,
-                 led_num: int, 
+                 led_num: int,
                  change_colour_probability: float = 0.10) -> None:
         self.pixels = pixels
         self.led_num = led_num
@@ -106,10 +106,18 @@ class Flame:
 
         for led_index in range(led_num):
             flicker_type = self._get_random_flicker()
-            initial_brightness = self._get_target_brightness(flicker_type.min_brightness, flicker_type.max_brightness)
-            target_brightness = self._get_target_brightness(flicker_type.min_brightness, flicker_type.max_brightness)
-            target_duration = self._get_target_duration(flicker_type.min_ms, flicker_type.max_ms)
-
+            initial_brightness = self._get_target_brightness(
+                flicker_type.min_brightness,
+                flicker_type.max_brightness
+            )
+            target_brightness = self._get_target_brightness(
+                flicker_type.min_brightness,
+                flicker_type.max_brightness
+            )
+            target_duration = self._get_target_duration(
+                flicker_type.min_ms,
+                flicker_type.max_ms
+            )
             now = self._timestamp_ms()
             self.leds.append({
                 "name": f"LED_{led_index}",
@@ -148,7 +156,7 @@ class Flame:
     def _get_target_brightness(self, min_brightness: float, max_brightness: float) -> float:
         """Randomly select a target brightness from a range"""
         return random.uniform(min_brightness, max_brightness)
-    
+
     def update(self, test: bool = False) -> None:
         """Update pixels"""
         for led in self.leds:
@@ -243,8 +251,11 @@ class Flame:
         return [
             {
                 "name": led['name'],
-                "colour": (led["state"].colour.name, led["state"].colour.hex),
-                "brightness": min(led["state"].current_brightness * self.LOCAL_WEIGHT + self._global_brightness.current_brightness * self.GLOBAL_WEIGHT, 1.00),
+                "colour": led["state"].colour,
+                "brightness": min(
+                    led["state"].current_brightness * self.LOCAL_WEIGHT +
+                    self._global_brightness.current_brightness * self.GLOBAL_WEIGHT, 1.00
+                ),
             }
             for led in self.leds
         ]

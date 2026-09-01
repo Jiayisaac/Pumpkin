@@ -1,19 +1,14 @@
 """Visual test application for the Flame class."""
-
 import tkinter as tk
-import time
 
 from flame import Flame
 
 LED_COUNT = 20
-
 BOX_SIZE = 50
 BOX_GAP = 10
 COLUMNS = 5
-
 WINDOW_BACKGROUND = "#202020"
-
-UPDATE_TIME_MS = 30
+UPDATE_TIME_MS = 10
 
 
 class FlameTestApp:
@@ -35,6 +30,7 @@ class FlameTestApp:
             bg=WINDOW_BACKGROUND,
             highlightthickness=0,
         )
+
         self.canvas.pack(
             padx=20,
             pady=20,
@@ -50,10 +46,21 @@ class FlameTestApp:
             self._on_close,
         )
 
-        while True:
-            self.flame.update(test=True)
-            self._update_display()
-            time.sleep(0.01)
+        self.root.after(
+            UPDATE_TIME_MS,
+            self._update,
+        )
+
+    def _update(self):
+        """Update the flame state and display."""
+
+        self.flame.update(test=True)
+        self._update_display()
+
+        self.root.after(
+            UPDATE_TIME_MS,
+            self._update,
+        )
 
     def _create_led_boxes(self):
         """Create graphical boxes representing each LED."""
@@ -105,10 +112,7 @@ class FlameTestApp:
         colour: int,
         brightness: float,
     ) -> str:
-        """
-        Apply brightness to a 24-bit RGB colour and
-        return a tkinter-compatible hexadecimal colour.
-        """
+        """Apply brightness to a 24-bit RGB colour."""
 
         red = (colour >> 16) & 0xFF
         green = (colour >> 8) & 0xFF
@@ -118,7 +122,7 @@ class FlameTestApp:
         green = int(green * brightness)
         blue = int(blue * brightness)
 
-        return f"#{red:02x}" f"{green:02x}" f"{blue:02x}"
+        return f"#{red:02x}{green:02x}{blue:02x}"
 
     def _update_display(self):
         """Update LED boxes from the current flame state."""
@@ -126,15 +130,14 @@ class FlameTestApp:
         state = self.flame.get_state()
 
         for led_index, led in enumerate(state):
-            colour_tuple = led["colour"]
+            colour = led["colour"]
 
-            colour_name = colour_tuple[0]
-            colour = colour_tuple[1]
-
+            colour_name = colour.name
+            colour_value = colour.hex
             brightness = led["brightness"]
 
             display_colour = self._apply_brightness(
-                colour,
+                colour_value,
                 brightness,
             )
 
@@ -145,26 +148,19 @@ class FlameTestApp:
 
             self.canvas.itemconfigure(
                 self.labels[led_index],
-                text=(f"{led_index}: " f"{colour_name}\n" f"{brightness:.2f}"),
+                text=(f"{led_index}: {colour_name}\n" f"{brightness:.2f}"),
             )
 
-        self.root.after(
-            UPDATE_TIME_MS,
-            self._update_display,
-        )
-
     def _on_close(self):
-        """Stop the Flame instance and close the application."""
-
-        self.flame.stop()
+        """Close the application."""
         self.root.destroy()
 
 
 def main():
+    """Run the Flame test application."""
+
     root = tk.Tk()
-
     FlameTestApp(root)
-
     root.mainloop()
 
 
