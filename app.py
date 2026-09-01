@@ -1,3 +1,4 @@
+"""Main application for controlling the Flame LED strip."""
 import time
 
 import board
@@ -15,6 +16,7 @@ pixels = neopixel.NeoPixel(
 )
 
 def main():
+    """Main loop for updating the Flame LED strip."""
     flame = Flame(pixels, LED_NUM)
     while True:
         flame.update()
