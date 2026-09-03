@@ -1,5 +1,5 @@
 """UPS battery monitoring for the Waveshare UPS HAT (C)."""
-import smbus
+import smbus2 as smbus
 
 
 class UPS:
