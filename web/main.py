@@ -12,22 +12,16 @@ from flask import (
     request,
 )
 
-from environment import read_env, update_env
+from web.environment import read_env, update_env
 from wifi import WiFi
 from ups import UPS
-import ups_html
-import config_html
-import restart_html
+from web.ups_html import UPS_PAGE
+from web.restart_html import RESTART_PAGE
+from web.config_html import CONFIG_PAGE
 
 app = Flask(__name__)
-
 ENV_FILE = Path(__file__).parent / '.env'
-
 ups = UPS()
-
-UPS_PAGE = ups_html
-CONFIG_PAGE = config_html
-RESTART_PAGE = restart_html
 
 
 def reboot_after_delay(delay=2):

@@ -29,7 +29,7 @@ def main():
         daemon=True
     )
     web_thread.start()
-    
+
     while True:
         flame.update()
         time.sleep(UPDATE_TIME_SECS)

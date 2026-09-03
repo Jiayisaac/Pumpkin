@@ -1,4 +1,4 @@
-"""
+CONFIG_PAGE = """
 <!DOCTYPE html>
 <html lang="en">
 
