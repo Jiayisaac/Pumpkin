@@ -1,0 +1,133 @@
+"""Web interface for monitoring and configuring the Pumpkin."""
+import os
+import subprocess
+import threading
+import time
+from pathlib import Path
+
+from flask import (
+    Flask,
+    jsonify,
+    render_template_string,
+    request,
+)
+
+from environment import read_env, update_env
+from wifi import WiFi
+from ups import UPS
+import ups_html
+import config_html
+import restart_html
+
+app = Flask(__name__)
+
+ENV_FILE = Path(__file__).parent / '.env'
+
+ups = UPS()
+
+UPS_PAGE = ups_html
+CONFIG_PAGE = config_html
+RESTART_PAGE = restart_html
+
+
+def reboot_after_delay(delay=2):
+    """Wait briefly before rebooting."""
+    time.sleep(delay)
+    os.sync()
+    subprocess.run(
+        [
+            'sudo',
+            '/usr/sbin/reboot'
+        ],
+        check=False
+    )
+
+
+@app.route('/')
+def configuration():
+    """Display the Pumpkin configuration page."""
+    values = read_env()
+
+    try:
+        networks = WiFi.networks()
+    except Exception as error:
+        print(
+            f'Unable to scan Wi-Fi networks: {error}'
+        )
+        networks = []
+
+    return render_template_string(
+        CONFIG_PAGE,
+        values=values,
+        networks=networks
+    )
+
+
+@app.route(
+    '/save',
+    methods=['POST']
+)
+def save():
+    """Save Pumpkin configuration and restart."""
+    current_values = read_env()
+    new_values = {}
+
+    for key in current_values:
+        new_values[key] = request.form.get(
+            key,
+            ''
+        )
+
+    update_env(new_values)
+    ssid = request.form.get(
+        'wifi_ssid',
+        ''
+    ).strip()
+    password = request.form.get(
+        'wifi_password',
+        ''
+    )
+    if ssid:
+        try:
+            WiFi.connect(
+                ssid,
+                password
+            )
+        except Exception as error:
+            print(
+                f'Unable to change Wi-Fi: {error}'
+            )
+
+    reboot_thread = threading.Thread(
+        target=reboot_after_delay,
+        daemon=True
+    )
+    reboot_thread.start()
+    return RESTART_PAGE
+
+
+@app.route('/ups')
+def ups_page():
+    """Display the UPS monitoring page."""
+    return render_template_string(
+        UPS_PAGE
+    )
+
+
+@app.route('/api/ups')
+def ups_state():
+    """Return the current UPS state as JSON."""
+    return jsonify(
+        ups.get_state()
+    )
+
+def run_web_server():
+    app.run(
+            host='0.0.0.0',
+            port=5000,
+            debug=False,
+            use_reloader=False
+        )
+
+if __name__ == '__main__':
+    run_web_server()

@@ -1,10 +1,12 @@
 """Main application for controlling the Flame LED strip."""
 import time
+import threading
 
 import board
 import neopixel
 
 from flame import Flame
+from web.main import run_web_server
 from environment import ENVIRONMENT
 
 PIN = getattr(board, ENVIRONMENT.PIN)
@@ -21,6 +23,13 @@ pixels = neopixel.NeoPixel(
 def main():
     """Main loop for updating the Flame LED strip."""
     flame = Flame(pixels, LED_COUNT, CHANGE_COLOUR_PROBABILITY)
+
+    web_thread = threading.Thread(
+        target=run_web_server,
+        daemon=True
+    )
+    web_thread.start()
+    
     while True:
         flame.update()
         time.sleep(UPDATE_TIME_SECS)
