@@ -1,14 +1,15 @@
 """Visual test application for the Flame class."""
 import tkinter as tk
 
+from environment import ENVIRONMENT
 from flame import Flame
 
-LED_COUNT = 20
+LED_COUNT = ENVIRONMENT.LED_COUNT
 BOX_SIZE = 50
 BOX_GAP = 10
 COLUMNS = 5
 WINDOW_BACKGROUND = "#202020"
-UPDATE_TIME_MS = 10
+UPDATE_TIME_MS = ENVIRONMENT.UPDATE_TIME_MS
 
 
 class FlameTestApp:
@@ -109,20 +110,18 @@ class FlameTestApp:
 
     @staticmethod
     def _apply_brightness(
-        colour: int,
+        colour: tuple[int, int, int],
         brightness: float,
     ) -> str:
         """Apply brightness to a 24-bit RGB colour."""
 
-        red = (colour >> 16) & 0xFF
-        green = (colour >> 8) & 0xFF
-        blue = colour & 0xFF
+        r, g, b = colour
 
-        red = int(red * brightness)
-        green = int(green * brightness)
-        blue = int(blue * brightness)
+        r = int(r * brightness)
+        g = int(g * brightness)
+        b = int(b * brightness)
 
-        return f"#{red:02x}{green:02x}{blue:02x}"
+        return f"#{r:02x}{g:02x}{b:02x}"
 
     def _update_display(self):
         """Update LED boxes from the current flame state."""
@@ -133,7 +132,7 @@ class FlameTestApp:
             colour = led["colour"]
 
             colour_name = colour.name
-            colour_value = colour.hex
+            colour_value = colour.rgb
             brightness = led["brightness"]
 
             display_colour = self._apply_brightness(

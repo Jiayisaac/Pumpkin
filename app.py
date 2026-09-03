@@ -5,22 +5,25 @@ import board
 import neopixel
 
 from flame import Flame
+from environment import ENVIRONMENT
 
-PIN = board.D17
-LED_NUM = 20
+PIN = getattr(board, ENVIRONMENT.PIN)
+LED_COUNT = ENVIRONMENT.LED_COUNT
+CHANGE_COLOUR_PROBABILITY = ENVIRONMENT.CHANGE_COLOUR_PROBABILITY
+UPDATE_TIME_SECS = ENVIRONMENT.UPDATE_TIME_MS / 1_000
 
 pixels = neopixel.NeoPixel(
     PIN,
-    LED_NUM,
+    LED_COUNT,
     auto_write=False
 )
 
 def main():
     """Main loop for updating the Flame LED strip."""
-    flame = Flame(pixels, LED_NUM)
+    flame = Flame(pixels, LED_COUNT, CHANGE_COLOUR_PROBABILITY)
     while True:
         flame.update()
-        time.sleep(0.01)
+        time.sleep(UPDATE_TIME_SECS)
 
 if __name__ == '__main__':
     main()

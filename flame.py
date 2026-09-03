@@ -1,9 +1,10 @@
 """Module defining the Flame class with various colours and flicker speeds."""
-
 import random
 import time
 import math
 from dataclasses import dataclass, field
+
+from environment import ENVIRONMENT
 
 @dataclass
 class Colour:
@@ -11,6 +12,14 @@ class Colour:
     name: str | None= None
     hex: int = 0
     p: float = 0.0
+
+    @property
+    def rgb(self) -> tuple[int, int, int]:
+        colour = self.hex
+        r = (colour >> 16) & 0xFF
+        g = (colour >> 8) & 0xFF
+        b = colour & 0xFF
+        return (r, g, b)
 
 @dataclass
 class Flicker:
@@ -67,9 +76,6 @@ class Flame:
         0.75,
         1.00,
     )
-
-    LOCAL_WEIGHT = 0.70
-    GLOBAL_WEIGHT = 0.30
 
     def __init__(self,
                  pixels,
@@ -168,14 +174,11 @@ class Flame:
     def _update_pixels(self) -> None:
         """Update the pixels (using Adafruit Neopixels)"""
         for i, led in enumerate(self.leds):
-            colour = led['state'].colour.hex
-            r = (colour >> 16) & 0xFF
-            g = (colour >> 8) & 0xFF
-            b = colour & 0xFF
+            r, g, b = led['state'].colour.rgb
 
             brightness = min(
-                led['state'].current_brightness * self.LOCAL_WEIGHT
-                + self._global_brightness.current_brightness * self.GLOBAL_WEIGHT, 1.00
+                led['state'].current_brightness * ENVIRONMENT.LOCAL_FLICKER_WEIGHT
+                + self._global_brightness.current_brightness * ENVIRONMENT.GLOBAL_FLICKER_WEIGHT, 1.00
             )
 
             self.pixels[i] = (
@@ -253,8 +256,8 @@ class Flame:
                 "name": led['name'],
                 "colour": led["state"].colour,
                 "brightness": min(
-                    led["state"].current_brightness * self.LOCAL_WEIGHT +
-                    self._global_brightness.current_brightness * self.GLOBAL_WEIGHT, 1.00
+                    led["state"].current_brightness * ENVIRONMENT.LOCAL_FLICKER_WEIGHT +
+                    self._global_brightness.current_brightness * ENVIRONMENT.GLOBAL_FLICKER_WEIGHT, 1.00
                 ),
             }
             for led in self.leds
