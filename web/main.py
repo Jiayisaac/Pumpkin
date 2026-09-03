@@ -1,5 +1,4 @@
 """Web interface for monitoring and configuring the Pumpkin."""
-import os
 import subprocess
 import threading
 import time
@@ -13,11 +12,11 @@ from flask import (
 )
 
 from web.environment import read_env, update_env
+from web.config_html import CONFIG_PAGE
+from web.restart_html import RESTART_PAGE
+from web.ups_html import UPS_PAGE
 from wifi import WiFi
 from ups import UPS
-from web.ups_html import UPS_PAGE
-from web.restart_html import RESTART_PAGE
-from web.config_html import CONFIG_PAGE
 
 app = Flask(__name__)
 ENV_FILE = Path(__file__).parent / '.env'
@@ -27,7 +26,6 @@ ups = UPS()
 def reboot_after_delay(delay=2):
     """Wait briefly before rebooting."""
     time.sleep(delay)
-    os.sync()
     subprocess.run(
         [
             'sudo',
