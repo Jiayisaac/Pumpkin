@@ -1,14 +1,17 @@
+"""WiFi management for the Pumpkin project."""
 import subprocess
 import time
 
 
 class WiFi:
+    """Class to manage WiFi connections and hotspots for the Pumpkin project."""
     INTERFACE = 'wlan0'
     HOTSPOT_NAME = 'Pumpkin-Setup'
     HOTSPOT_PASSWORD = 'pumpkin123'
 
     @staticmethod
     def _run(*args):
+        """Run a nmcli command and return the result."""
         return subprocess.run(
             ['nmcli', *args],
             capture_output=True,
@@ -18,6 +21,7 @@ class WiFi:
 
     @classmethod
     def connected(cls):
+        """Check if the WiFi interface is connected to a network."""
         result = subprocess.run(
             [
                 'nmcli',
@@ -27,13 +31,15 @@ class WiFi:
                 'device'
             ],
             capture_output=True,
-            text=True
+            text=True,
+            check=False
         )
 
         return f'{cls.INTERFACE}:connected' in result.stdout
 
     @classmethod
     def networks(cls):
+        """Scan for available WiFi networks and return a sorted list of SSIDs."""
         cls._run(
             'device',
             'wifi',
@@ -67,6 +73,7 @@ class WiFi:
 
     @classmethod
     def connect(cls, ssid, password):
+        """Connect to a specified WiFi network using the given SSID and password."""
         cls.stop_hotspot()
 
         cls._run(
@@ -82,6 +89,7 @@ class WiFi:
 
     @classmethod
     def start_hotspot(cls):
+        """Start a WiFi hotspot with the predefined SSID and password if not already connected."""
         if cls.connected():
             return
 
@@ -101,6 +109,7 @@ class WiFi:
 
     @classmethod
     def stop_hotspot(cls):
+        """Stop the WiFi hotspot if it is currently active."""
         subprocess.run(
             [
                 'nmcli',
@@ -108,5 +117,6 @@ class WiFi:
                 'down',
                 cls.HOTSPOT_NAME
             ],
-            capture_output=True
+            capture_output=True,
+            check=False
         )

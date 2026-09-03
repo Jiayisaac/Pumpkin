@@ -1,3 +1,4 @@
+"""HTML template for the Pumpkin restart page."""
 RESTART_PAGE = """
 <!DOCTYPE html>
 

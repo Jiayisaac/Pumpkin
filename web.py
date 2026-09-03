@@ -1,21 +1,24 @@
-"""HTML template for the Pumpkin UPS page."""
-UPS_PAGE = """
+"""Web interface for monitoring the Pumpkin UPS."""
+from flask import Flask, jsonify, render_template_string
+
+from ups import UPS
+
+app = Flask(__name__)
+ups = UPS()
+
+
+PAGE = """
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
-
     <title>Pumpkin UPS</title>
 
     <style>
-
         body {
             margin: 0;
             background: #202020;
@@ -66,38 +69,18 @@ UPS_PAGE = """
             margin-top: 30px;
             font-size: 1.2em;
         }
-
-        .navigation {
-            margin-top: 40px;
-            text-align: center;
-        }
-
-        .navigation a {
-            display: inline-block;
-            padding: 12px 20px;
-            background: #444444;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
     </style>
-
 </head>
 
 <body>
-
     <div class="container">
-
         <h1>Pumpkin UPS</h1>
 
         <div class="battery">
-
             <div
                 id="battery-level"
                 class="battery-level"
             ></div>
-
         </div>
 
         <div
@@ -108,33 +91,18 @@ UPS_PAGE = """
         </div>
 
         <div class="reading">
-
             <span>Voltage</span>
-
-            <span id="voltage">
-                -- V
-            </span>
-
+            <span id="voltage">-- V</span>
         </div>
 
         <div class="reading">
-
             <span>Current</span>
-
-            <span id="current">
-                -- mA
-            </span>
-
+            <span id="current">-- mA</span>
         </div>
 
         <div class="reading">
-
             <span>Power</span>
-
-            <span id="power">
-                -- mW
-            </span>
-
+            <span id="power">-- mW</span>
         </div>
 
         <div
@@ -143,29 +111,12 @@ UPS_PAGE = """
         >
             Loading...
         </div>
-
-        <div class="navigation">
-
-            <a href="/">
-                Configuration
-            </a>
-
-        </div>
-
     </div>
 
     <script>
-
         async function updateUPS() {
-
             try {
-
                 const response = await fetch('/api/ups');
-
-                if (!response.ok) {
-                    throw new Error('Unable to read UPS');
-                }
-
                 const data = await response.json();
 
                 document.getElementById(
@@ -196,19 +147,13 @@ UPS_PAGE = """
                 let status = 'Battery';
 
                 if (data.charging) {
-
                     status = 'Charging';
-
                 } else if (data.discharging) {
-
                     status = 'Running on battery';
-
                 }
 
                 if (data.low) {
-
                     status += ' — LOW BATTERY';
-
                 }
 
                 document.getElementById(
@@ -216,14 +161,10 @@ UPS_PAGE = """
                 ).textContent = status;
 
             } catch (error) {
-
                 document.getElementById(
                     'status'
-                ).textContent =
-                    'Unable to read UPS';
-
+                ).textContent = 'Unable to read UPS';
             }
-
         }
 
         updateUPS();
@@ -232,10 +173,27 @@ UPS_PAGE = """
             updateUPS,
             30000
         );
-
     </script>
-
 </body>
-
 </html>
 """
+
+
+@app.route("/")
+def index():
+    """Display the UPS monitoring page."""
+    return render_template_string(PAGE)
+
+
+@app.route("/api/ups")
+def ups_state():
+    """Return the current UPS state as JSON."""
+    return jsonify(ups.get_state())
+
+
+if __name__ == "__main__":
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=False,
+    )

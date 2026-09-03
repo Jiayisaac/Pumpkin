@@ -20,6 +20,7 @@ pixels = neopixel.NeoPixel(
     auto_write=False
 )
 
+
 def main():
     """Main loop for updating the Flame LED strip."""
     flame = Flame(pixels, LED_COUNT, CHANGE_COLOUR_PROBABILITY)
@@ -33,6 +34,7 @@ def main():
     while True:
         flame.update()
         time.sleep(UPDATE_TIME_SECS)
+
 
 if __name__ == '__main__':
     main()
