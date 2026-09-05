@@ -11,7 +11,7 @@ load_dotenv('.env')
 @dataclass
 class Environment:
     """Dataclass to hold environment variables"""
-    LED_PIN: str = os.getenv('PIN', 'D17')
+    LED_PIN: str = os.getenv('LED_PIN', 'D21')
     LED_COUNT: int = int(os.getenv('LED_COUNT', '24'))
     BUTTON_PIN: str = os.getenv('BUTTON_PIN', 'D16')
     CHANGE_COLOUR_PROBABILITY: float = float(os.getenv('CHANGE_COLOUR_PROBABILITY', '0.10'))
