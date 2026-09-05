@@ -43,21 +43,45 @@ class State:
     started_at: int = 0
     completed_at: int = 0
 
+CANDLE_FLAME = [
+    # Name, hex, probability
+    Colour("DEEP_EMBER", 0xDD2800, 0.05),
+    Colour("DEEP_ORANGE", 0xFF4500, 0.10),
+    Colour("CANDLE_ORANGE", 0xFF6A00, 0.15),
+    Colour("AMBER", 0xFF8C00, 0.20),
+    Colour("GOLDEN_AMBER", 0xFFA500, 0.20),
+    Colour("FLAME_YELLOW", 0xFFC020, 0.15),
+    Colour("WARM_YELLOW", 0xFFD35A, 0.10),
+    Colour("HOT_FLAME", 0xFFE6A0, 0.05),
+]
+
+INFERNAL_FLAME = [
+    # Name, hex, probability
+    Colour("BLACK_EMBER", 0x180000, 0.05),
+    Colour("DARK_CRIMSON", 0x400000, 0.10),
+    Colour("BLOOD_RED", 0x800000, 0.15),
+    Colour("HELL_RED", 0xC00000, 0.20),
+    Colour("INFERNO_RED", 0xFF1800, 0.20),
+    Colour("MOLTEN_ORANGE", 0xFF4000, 0.15),
+    Colour("HELLFIRE_ORANGE", 0xFF7000, 0.10),
+    Colour("SULPHUR_FLARE", 0xFFC000, 0.05),
+]
+
+HELLFIRE = [
+    # HELLFIRE
+    # Name, hex, probability
+    Colour("ABYSSAL_BLUE", 0x001830, 0.05),
+    Colour("DEEP_BLUE", 0x003080, 0.10),
+    Colour("HELL_BLUE", 0x0055CC, 0.15),
+    Colour("GHOST_CYAN", 0x00AACC, 0.15),
+    Colour("TOXIC_TEAL", 0x00C888, 0.20),
+    Colour("HELL_GREEN", 0x00E050, 0.15),
+    Colour("ACID_GREEN", 0x60FF20, 0.15),
+    Colour("SULPHUR_GREEN", 0xC0FF40, 0.05),
+]
 
 class Flame:
     """Class representing a flame with various colours and flicker speeds."""
-
-    COLOURS = [
-        # Name, hex, probability
-        Colour("DEEP_EMBER", 0xDD2800, 0.05),
-        Colour("DEEP_ORANGE", 0xFF4500, 0.10),
-        Colour("CANDLE_ORANGE", 0xFF6A00, 0.15),
-        Colour("AMBER", 0xFF8C00, 0.20),
-        Colour("GOLDEN_AMBER", 0xFFA500, 0.20),
-        Colour("FLAME_YELLOW", 0xFFC020, 0.15),
-        Colour("WARM_YELLOW", 0xFFD35A, 0.10),
-        Colour("HOT_FLAME", 0xFFE6A0, 0.05),
-    ]
 
     FLICKER = [
         # Name, probability, min_ms, max_ms, min_brightness, max_brightness
@@ -84,6 +108,15 @@ class Flame:
         self.pixels = pixels
         self.led_num = led_num
         self.change_colour_probability = change_colour_probability
+
+        self.COLOUR_SCHEMES = [
+            CANDLE_FLAME,
+            INFERNAL_FLAME,
+            HELLFIRE,
+        ]
+
+        self.ACTIVE_COLOUR_SCHEME = self.COLOUR_SCHEMES[0]
+        self.COLOURS = self.ACTIVE_COLOUR_SCHEME
 
         initial_global_brightness = self._get_target_brightness(
             self.GLOBAL_FLICKER.min_brightness,
