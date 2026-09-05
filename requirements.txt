@@ -1,5 +1,6 @@
 Adafruit-Blinka
 adafruit-circuitpython-neopixel
+adafruit-circuitpython-debouncer
 Flask
 dotenv
 smbus2

@@ -4,7 +4,8 @@ import threading
 
 import board
 import neopixel
-from gpiozero import Button
+from adafruit_debouncer import Debouncer
+import digitalio
 
 from flame import Flame
 from web.main import run_web_server
@@ -22,7 +23,10 @@ pixels = neopixel.NeoPixel(
     auto_write=False
 )
 
-button = Button(pin=BUTTON_PIN, pull_up=True)
+pin = digitalio.DigitalInOut(BUTTON_PIN)
+pin.direction = digitalio.Direction.INPUT
+pin.pull = digitalio.Pull.UP
+button = Debouncer(pin)
 
 
 def on_button_pressed(flame: Flame):
@@ -36,7 +40,6 @@ def on_button_pressed(flame: Flame):
 def main():
     """Main loop for updating the Flame LED strip."""
     flame = Flame(pixels, LED_COUNT, CHANGE_COLOUR_PROBABILITY)
-    button.when_pressed = lambda: on_button_pressed(flame)
 
     web_thread = threading.Thread(
         target=run_web_server,
@@ -45,6 +48,9 @@ def main():
     web_thread.start()
 
     while True:
+        button.update()
+        if button.fell:
+            on_button_pressed(flame)
         flame.update()
         time.sleep(UPDATE_TIME_SECS)
 
