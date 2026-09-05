@@ -18,5 +18,6 @@ class Environment:
     UPDATE_TIME_MS: int = int(os.getenv('UPDATE_TIME_MS', '10'))
     LOCAL_FLICKER_WEIGHT: float = float(os.getenv('LOCAL_FLICKER_WEIGHT', '0.70'))
     GLOBAL_FLICKER_WEIGHT: float = float(os.getenv('GLOBAL_FLICKER_WEIGHT', '0.30'))
+    UPS_PRESENT: bool = os.getenv('UPS_PRESENT', 'FALSE').upper() == 'TRUE'
 
 ENVIRONMENT = Environment()

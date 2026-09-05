@@ -15,12 +15,17 @@ from web.environment import read_env, update_env
 from web.config_html import CONFIG_PAGE
 from web.restart_html import RESTART_PAGE
 from web.ups_html import UPS_PAGE
+from environment import ENVIRONMENT
 from wifi import WiFi
 from ups import UPS
 
 app = Flask(__name__)
 ENV_FILE = Path(__file__).parent / '.env'
-ups = UPS()
+
+if ENVIRONMENT.UPS_PRESENT:
+    ups = UPS()
+else:
+    ups = None
 
 
 def reboot_after_delay(delay=2):
@@ -111,15 +116,18 @@ def ups_state():
     """Return the current UPS state as JSON."""
     return jsonify(
         ups.get_state()
-    )
+    ) if ups is not None else jsonify({})
+
 
 def run_web_server():
+    """Run the Flask web server."""
     app.run(
             host='0.0.0.0',
             port=5000,
             debug=False,
             use_reloader=False
         )
+
 
 if __name__ == '__main__':
     run_web_server()
