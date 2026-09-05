@@ -1,7 +1,7 @@
 """Environment variable management for the Pumpkin project."""
 from pathlib import Path
 
-ENV_FILE = Path(__file__).parent / '.env'
+ENV_FILE = Path(__file__).parent.parent / '.env'
 
 def read_env():
     """Read KEY=value entries from the .env file."""

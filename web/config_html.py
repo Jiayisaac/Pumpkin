@@ -220,13 +220,17 @@ CONFIG_PAGE = """
 
         </form>
 
-        <div class="navigation">
+        {% if ups_present %}
 
-            <a href="/ups">
-                View UPS Status
-            </a>
+            <div class="navigation">
 
-        </div>
+                <a href="/ups">
+                    View UPS Status
+                </a>
+
+            </div>
+
+        {% endif %}
 
     </div>
 

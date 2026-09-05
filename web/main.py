@@ -2,7 +2,6 @@
 import subprocess
 import threading
 import time
-from pathlib import Path
 
 from flask import (
     Flask,
@@ -20,7 +19,6 @@ from wifi import WiFi
 from ups import UPS
 
 app = Flask(__name__)
-ENV_FILE = Path(__file__).parent / '.env'
 
 if ENVIRONMENT.UPS_PRESENT:
     ups = UPS()
@@ -56,7 +54,8 @@ def configuration():
     return render_template_string(
         CONFIG_PAGE,
         values=values,
-        networks=networks
+        networks=networks,
+        ups_present=ENVIRONMENT.UPS_PRESENT,
     )
 
 
