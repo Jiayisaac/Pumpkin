@@ -4,4 +4,3 @@ adafruit-circuitpython-debouncer
 Flask
 dotenv
 smbus2
-digitalio
