@@ -3,4 +3,4 @@ adafruit-circuitpython-neopixel
 Flask
 dotenv
 smbus2
-gpiozero
+digitalio
