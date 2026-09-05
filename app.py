@@ -41,11 +41,13 @@ def main():
     """Main loop for updating the Flame LED strip."""
     flame = Flame(pixels, LED_COUNT, CHANGE_COLOUR_PROBABILITY)
 
+    """
     web_thread = threading.Thread(
         target=run_web_server,
         daemon=True
     )
     web_thread.start()
+    """
 
     while True:
         button.update()
