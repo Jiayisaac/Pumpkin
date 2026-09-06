@@ -43,62 +43,74 @@ class State:
     started_at: int = 0
     completed_at: int = 0
 
-CANDLE_FLAME = [
-    # Name, hex, probability
-    Colour("DEEP_EMBER", 0xDD2800, 0.05),
-    Colour("DEEP_ORANGE", 0xFF4500, 0.10),
-    Colour("CANDLE_ORANGE", 0xFF6A00, 0.15),
-    Colour("AMBER", 0xFF8C00, 0.20),
-    Colour("GOLDEN_AMBER", 0xFFA500, 0.20),
-    Colour("FLAME_YELLOW", 0xFFC020, 0.15),
-    Colour("WARM_YELLOW", 0xFFD35A, 0.10),
-    Colour("HOT_FLAME", 0xFFE6A0, 0.05),
-]
+CANDLE_FLAME = [Colour(
+        getattr(ENVIRONMENT, f'CANDLE_FLAME_COLOUR{i}_NAME'),
+        getattr(ENVIRONMENT, f'CANDLE_FLAME_COLOUR{i}_HEX'),
+        getattr(ENVIRONMENT, f'CANDLE_FLAME_COLOUR{i}_PROBABILITY')
+    ) for i in range(1, 9)]
 
 INFERNAL_FLAME = [
-    # Name, hex, probability
-    Colour("BLACK_EMBER", 0x180000, 0.05),
-    Colour("DARK_CRIMSON", 0x400000, 0.10),
-    Colour("BLOOD_RED", 0x800000, 0.15),
-    Colour("HELL_RED", 0xC00000, 0.20),
-    Colour("INFERNO_RED", 0xFF1800, 0.20),
-    Colour("MOLTEN_ORANGE", 0xFF4000, 0.15),
-    Colour("HELLFIRE_ORANGE", 0xFF7000, 0.10),
-    Colour("SULPHUR_FLARE", 0xFFC000, 0.05),
-]
+    Colour(
+        getattr(ENVIRONMENT, f'INFERNAL_FLAME_COLOUR{i}_NAME'),
+        getattr(ENVIRONMENT, f'INFERNAL_FLAME_COLOUR{i}_HEX'),
+        getattr(ENVIRONMENT, f'INFERNAL_FLAME_COLOUR{i}_PROBABILITY')
+    ) for i in range(1, 9)]
 
 HELLFIRE = [
-    # HELLFIRE
-    # Name, hex, probability
-    Colour("ABYSSAL_BLUE", 0x001830, 0.05),
-    Colour("DEEP_BLUE", 0x003080, 0.10),
-    Colour("HELL_BLUE", 0x0055CC, 0.15),
-    Colour("GHOST_CYAN", 0x00AACC, 0.15),
-    Colour("TOXIC_TEAL", 0x00C888, 0.20),
-    Colour("HELL_GREEN", 0x00E050, 0.15),
-    Colour("ACID_GREEN", 0x60FF20, 0.15),
-    Colour("SULPHUR_GREEN", 0xC0FF40, 0.05),
-]
+    Colour(
+        getattr(ENVIRONMENT, f'HELLFIRE_COLOUR{i}_NAME'),
+        getattr(ENVIRONMENT, f'HELLFIRE_COLOUR{i}_HEX'),
+        getattr(ENVIRONMENT, f'HELLFIRE_COLOUR{i}_PROBABILITY')
+    ) for i in range(1, 9)]
+
 
 class Flame:
     """Class representing a flame with various colours and flicker speeds."""
 
     FLICKER = [
         # Name, probability, min_ms, max_ms, min_brightness, max_brightness
-        Flicker("FAST_FLICKER", 0.10, 30, 120, 0.65, 1.00),
-        Flicker("NORMAL_FLICKER", 0.55, 120, 400, 0.70, 1.00),
-        Flicker("SLOW_FLICKER", 0.30, 500, 2000, 0.75, 1.00),
-        Flicker("OCC_DIP_FLARE", 0.05, 50, 250, 0.35, 1.00),
+        Flicker(
+            "FAST_FLICKER",
+            ENVIRONMENT.FAST_FLICKER_PROBABILITY,
+            ENVIRONMENT.FAST_FLICKER_MIN_MS,
+            ENVIRONMENT.FAST_FLICKER_MAX_MS,
+            ENVIRONMENT.FAST_FLICKER_MIN_BRIGHTNESS,
+            ENVIRONMENT.FAST_FLICKER_MAX_BRIGHTNESS
+        ),
+        Flicker(
+            "NORMAL_FLICKER",
+            ENVIRONMENT.NORMAL_FLICKER_PROBABILITY,
+            ENVIRONMENT.NORMAL_FLICKER_MIN_MS,
+            ENVIRONMENT.NORMAL_FLICKER_MAX_MS,
+            ENVIRONMENT.NORMAL_FLICKER_MIN_BRIGHTNESS,
+            ENVIRONMENT.NORMAL_FLICKER_MAX_BRIGHTNESS
+        ),
+        Flicker(
+            "SLOW_FLICKER",
+            ENVIRONMENT.SLOW_FLICKER_PROBABILITY,
+            ENVIRONMENT.SLOW_FLICKER_MIN_MS,
+            ENVIRONMENT.SLOW_FLICKER_MAX_MS,
+            ENVIRONMENT.SLOW_FLICKER_MIN_BRIGHTNESS,
+            ENVIRONMENT.SLOW_FLICKER_MAX_BRIGHTNESS
+        ),
+        Flicker(
+            "OCC_DIP_FLARE",
+            ENVIRONMENT.OCC_DIP_FLARE_PROBABILITY,
+            ENVIRONMENT.OCC_DIP_FLARE_MIN_MS,
+            ENVIRONMENT.OCC_DIP_FLARE_MAX_MS,
+            ENVIRONMENT.OCC_DIP_FLARE_MIN_BRIGHTNESS,
+            ENVIRONMENT.OCC_DIP_FLARE_MAX_BRIGHTNESS
+        ),
     ]
 
     GLOBAL_FLICKER = Flicker(
         # Name, probability, min_ms, max_ms, min_brightness, max_brightness
         "GLOBAL_FLICKER",
-        1,
-        500,
-        2000,
-        0.75,
-        1.00,
+        ENVIRONMENT.GLOBAL_FLICKER_PROBABILITY,
+        ENVIRONMENT.GLOBAL_FLICKER_MIN_MS,
+        ENVIRONMENT.GLOBAL_FLICKER_MAX_MS,
+        ENVIRONMENT.GLOBAL_FLICKER_MIN_BRIGHTNESS,
+        ENVIRONMENT.GLOBAL_FLICKER_MAX_BRIGHTNESS,
     )
 
     def __init__(self,
