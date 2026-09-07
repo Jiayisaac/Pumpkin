@@ -42,25 +42,30 @@ def main():
     """Main loop for updating the Flame LED strip."""
     flame = Flame(pixels, LED_COUNT, CHANGE_COLOUR_PROBABILITY)
 
-    web_thread = threading.Thread(
-        target=run_web_server,
-        daemon=True
-    )
+    web_thread = threading.Thread(target=run_web_server, daemon=True)
     web_thread.start()
 
+    cycle_started_at = time.monotonic()
+    active_scheme_index = 1
+
     while True:
-        elapsed_time = time.monotonic()
-        active_scheme_index = 0
         button.update()
+
         if button.fell:
             on_button_pressed(flame)
-        if flame.ACTIVE_COLOUR_SCHEME == 'CYCLE':
-            if elapsed_time > 30:
-                elapsed_time = 0
-                active_scheme_index = (active_scheme_index + 1) % len(flame.COLOUR_SCHEMES)
+
+            if flame.ACTIVE_COLOUR_SCHEME == "CYCLE":
+                active_scheme_index = 1
                 flame.COLOURS = flame.COLOUR_SCHEMES[active_scheme_index]
-            else:
+                cycle_started_at = time.monotonic()
+
+        if flame.ACTIVE_COLOUR_SCHEME == "CYCLE":
+            if time.monotonic() - cycle_started_at >= 30:
+                active_scheme_index += 1
+                if active_scheme_index >= len(flame.COLOUR_SCHEMES):
+                    active_scheme_index = 1
                 flame.COLOURS = flame.COLOUR_SCHEMES[active_scheme_index]
+                cycle_started_at = time.monotonic()
 
         flame.update()
         time.sleep(UPDATE_TIME_SECS)
