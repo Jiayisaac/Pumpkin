@@ -122,9 +122,10 @@ class Flame:
         self.change_colour_probability = change_colour_probability
 
         self.COLOUR_SCHEMES = [
-            CANDLE_FLAME,
             INFERNAL_FLAME,
+            CANDLE_FLAME,
             HELLFIRE,
+            'CYCLE'
         ]
 
         self.ACTIVE_COLOUR_SCHEME = self.COLOUR_SCHEMES[0]

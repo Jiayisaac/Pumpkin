@@ -34,7 +34,8 @@ def on_button_pressed(flame: Flame):
     flame.ACTIVE_COLOUR_SCHEME = flame.COLOUR_SCHEMES[
         (flame.COLOUR_SCHEMES.index(flame.ACTIVE_COLOUR_SCHEME) + 1) % len(flame.COLOUR_SCHEMES)
         ]
-    flame.COLOURS = flame.ACTIVE_COLOUR_SCHEME
+    if not flame.ACTIVE_COLOUR_SCHEME == 'CYCLE':
+        flame.COLOURS = flame.ACTIVE_COLOUR_SCHEME
 
 
 def main():
@@ -48,9 +49,19 @@ def main():
     web_thread.start()
 
     while True:
+        elapsed_time = time.monotonic()
+        active_scheme_index = 0
         button.update()
         if button.fell:
             on_button_pressed(flame)
+        if flame.ACTIVE_COLOUR_SCHEME == 'CYCLE':
+            if elapsed_time > 30:
+                elapsed_time = 0
+                active_scheme_index = (active_scheme_index + 1) % len(flame.COLOUR_SCHEMES)
+                flame.COLOURS = flame.COLOUR_SCHEMES[active_scheme_index]
+            else:
+                flame.COLOURS = flame.COLOUR_SCHEMES[active_scheme_index]
+
         flame.update()
         time.sleep(UPDATE_TIME_SECS)
 
