@@ -129,7 +129,7 @@ class Flame:
         ]
 
         self.ACTIVE_COLOUR_SCHEME = self.COLOUR_SCHEMES[0]
-        self.COLOURS = self.ACTIVE_COLOUR_SCHEME
+        self.COLOURS = INFERNAL_FLAME
 
         initial_global_brightness = self._get_target_brightness(
             self.GLOBAL_FLICKER.min_brightness,
