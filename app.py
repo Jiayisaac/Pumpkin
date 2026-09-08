@@ -16,6 +16,7 @@ from flame import (
 )
 from web.main import run_web_server
 from environment import ENVIRONMENT
+from wifi import WiFi
 
 LED_PIN = getattr(board, ENVIRONMENT.LED_PIN)
 BUTTON_PIN = getattr(board, ENVIRONMENT.BUTTON_PIN)
@@ -45,6 +46,12 @@ def on_button_pressed(flame: Flame):
 def main():
     """Main loop for updating the Flame LED strip."""
     flame = Flame(pixels, LED_COUNT, CHANGE_COLOUR_PROBABILITY)
+
+    wifi_thread = threading.Thread(
+        target=WiFi.service,
+        daemon=True
+    )
+    wifi_thread.start()
 
     web_thread = threading.Thread(
         target=run_web_server,
@@ -78,7 +85,6 @@ def main():
                 if active_scheme_index >= len(COLOUR_SCHEMES):
                     active_scheme_index = 1
 
-                # Keep CYCLE as the active mode while changing its displayed colours.
                 scheme = COLOUR_SCHEMES[active_scheme_index]
                 flame.colours = {
                     'INFERNAL_FLAME': INFERNAL_FLAME,

@@ -18,21 +18,26 @@ Interface Options -> I2C -> Enable
 Install python, pip, git, i2c tools and smbus:
 sudo apt install -y python3 python3-pip python3-venv git i2c-tools python3-smbus
 
+Configure WiFi settings:
+WIFI_SSID='[YOUR WIFI]'
+sudo nmcli connection modify "$WIFI_SSID" 802-11-wireless.bssid '' connection.autoconnect yes\
+sudo nmcli connection modify "$WIFI_SSID" 802-11-wireless.powersave 2
+
 Clone the repository:
 cd ~
 git clone https://github.com/Jiayisaac/Pumpkin.git
 cd Pumpkin
 
 Install and activate python venv:
-python3 -m venv --system-site-packages venv
+python -m venv --system-site-packages venv
 source venv/bin/activate
 
 Install requirements
-python3 -m pip install --upgrade pip
-python3 -m pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 
 Test app works:
-python3 app.py
+python app.py
 
 Add pumpkin.service to:
 /etc/systemd/system/pumpkin.service
