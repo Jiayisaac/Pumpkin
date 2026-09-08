@@ -64,54 +64,67 @@ HELLFIRE = [
     ) for i in range(1, 9)]
 
 
+
+FLICKER = [
+    # Name, probability, min_ms, max_ms, min_brightness, max_brightness
+    Flicker(
+        'FAST_FLICKER',
+        ENVIRONMENT.FAST_FLICKER_PROBABILITY,
+        ENVIRONMENT.FAST_FLICKER_MIN_MS,
+        ENVIRONMENT.FAST_FLICKER_MAX_MS,
+        ENVIRONMENT.FAST_FLICKER_MIN_BRIGHTNESS,
+        ENVIRONMENT.FAST_FLICKER_MAX_BRIGHTNESS
+    ),
+    Flicker(
+        'NORMAL_FLICKER',
+        ENVIRONMENT.NORMAL_FLICKER_PROBABILITY,
+        ENVIRONMENT.NORMAL_FLICKER_MIN_MS,
+        ENVIRONMENT.NORMAL_FLICKER_MAX_MS,
+        ENVIRONMENT.NORMAL_FLICKER_MIN_BRIGHTNESS,
+        ENVIRONMENT.NORMAL_FLICKER_MAX_BRIGHTNESS
+    ),
+    Flicker(
+        'SLOW_FLICKER',
+        ENVIRONMENT.SLOW_FLICKER_PROBABILITY,
+        ENVIRONMENT.SLOW_FLICKER_MIN_MS,
+        ENVIRONMENT.SLOW_FLICKER_MAX_MS,
+        ENVIRONMENT.SLOW_FLICKER_MIN_BRIGHTNESS,
+        ENVIRONMENT.SLOW_FLICKER_MAX_BRIGHTNESS
+    ),
+    Flicker(
+        'OCC_DIP_FLARE',
+        ENVIRONMENT.OCC_DIP_FLARE_PROBABILITY,
+        ENVIRONMENT.OCC_DIP_FLARE_MIN_MS,
+        ENVIRONMENT.OCC_DIP_FLARE_MAX_MS,
+        ENVIRONMENT.OCC_DIP_FLARE_MIN_BRIGHTNESS,
+        ENVIRONMENT.OCC_DIP_FLARE_MAX_BRIGHTNESS
+    ),
+]
+
+GLOBAL_FLICKER = Flicker(
+    'GLOBAL_FLICKER',
+    ENVIRONMENT.GLOBAL_FLICKER_PROBABILITY,
+    ENVIRONMENT.GLOBAL_FLICKER_MIN_MS,
+    ENVIRONMENT.GLOBAL_FLICKER_MAX_MS,
+    ENVIRONMENT.GLOBAL_FLICKER_MIN_BRIGHTNESS,
+    ENVIRONMENT.GLOBAL_FLICKER_MAX_BRIGHTNESS,
+)
+
+COLOUR_SCHEMES = [
+    'CYCLE',
+    'INFERNAL_FLAME',
+    'CANDLE_FLAME',
+    'HELLFIRE',
+]
+
+_COLOUR_SCHEME_COLOURS = {
+    'INFERNAL_FLAME': INFERNAL_FLAME,
+    'CANDLE_FLAME': CANDLE_FLAME,
+    'HELLFIRE': HELLFIRE,
+}
+
 class Flame:
     """Class representing a flame with various colours and flicker speeds."""
-
-    FLICKER = [
-        # Name, probability, min_ms, max_ms, min_brightness, max_brightness
-        Flicker(
-            "FAST_FLICKER",
-            ENVIRONMENT.FAST_FLICKER_PROBABILITY,
-            ENVIRONMENT.FAST_FLICKER_MIN_MS,
-            ENVIRONMENT.FAST_FLICKER_MAX_MS,
-            ENVIRONMENT.FAST_FLICKER_MIN_BRIGHTNESS,
-            ENVIRONMENT.FAST_FLICKER_MAX_BRIGHTNESS
-        ),
-        Flicker(
-            "NORMAL_FLICKER",
-            ENVIRONMENT.NORMAL_FLICKER_PROBABILITY,
-            ENVIRONMENT.NORMAL_FLICKER_MIN_MS,
-            ENVIRONMENT.NORMAL_FLICKER_MAX_MS,
-            ENVIRONMENT.NORMAL_FLICKER_MIN_BRIGHTNESS,
-            ENVIRONMENT.NORMAL_FLICKER_MAX_BRIGHTNESS
-        ),
-        Flicker(
-            "SLOW_FLICKER",
-            ENVIRONMENT.SLOW_FLICKER_PROBABILITY,
-            ENVIRONMENT.SLOW_FLICKER_MIN_MS,
-            ENVIRONMENT.SLOW_FLICKER_MAX_MS,
-            ENVIRONMENT.SLOW_FLICKER_MIN_BRIGHTNESS,
-            ENVIRONMENT.SLOW_FLICKER_MAX_BRIGHTNESS
-        ),
-        Flicker(
-            "OCC_DIP_FLARE",
-            ENVIRONMENT.OCC_DIP_FLARE_PROBABILITY,
-            ENVIRONMENT.OCC_DIP_FLARE_MIN_MS,
-            ENVIRONMENT.OCC_DIP_FLARE_MAX_MS,
-            ENVIRONMENT.OCC_DIP_FLARE_MIN_BRIGHTNESS,
-            ENVIRONMENT.OCC_DIP_FLARE_MAX_BRIGHTNESS
-        ),
-    ]
-
-    GLOBAL_FLICKER = Flicker(
-        # Name, probability, min_ms, max_ms, min_brightness, max_brightness
-        "GLOBAL_FLICKER",
-        ENVIRONMENT.GLOBAL_FLICKER_PROBABILITY,
-        ENVIRONMENT.GLOBAL_FLICKER_MIN_MS,
-        ENVIRONMENT.GLOBAL_FLICKER_MAX_MS,
-        ENVIRONMENT.GLOBAL_FLICKER_MIN_BRIGHTNESS,
-        ENVIRONMENT.GLOBAL_FLICKER_MAX_BRIGHTNESS,
-    )
 
     def __init__(self,
                  pixels,
@@ -121,27 +134,20 @@ class Flame:
         self.led_num = led_num
         self.change_colour_probability = change_colour_probability
 
-        self.COLOUR_SCHEMES = [
-            'CYCLE',
-            INFERNAL_FLAME,
-            CANDLE_FLAME,
-            HELLFIRE,
-        ]
-
-        self.ACTIVE_COLOUR_SCHEME = self.COLOUR_SCHEMES[0]
-        self.COLOURS = INFERNAL_FLAME
+        self.active_colour_scheme = COLOUR_SCHEMES[0]
+        self.colours = INFERNAL_FLAME
 
         initial_global_brightness = self._get_target_brightness(
-            self.GLOBAL_FLICKER.min_brightness,
-            self.GLOBAL_FLICKER.max_brightness
+            GLOBAL_FLICKER.min_brightness,
+            GLOBAL_FLICKER.max_brightness
         )
         target_global_brightness = self._get_target_brightness(
-            self.GLOBAL_FLICKER.min_brightness,
-            self.GLOBAL_FLICKER.max_brightness
+            GLOBAL_FLICKER.min_brightness,
+            GLOBAL_FLICKER.max_brightness
         )
         target_global_duration = self._get_target_duration(
-            self.GLOBAL_FLICKER.min_ms,
-            self.GLOBAL_FLICKER.max_ms
+            GLOBAL_FLICKER.min_ms,
+            GLOBAL_FLICKER.max_ms
         )
 
         now = self._timestamp_ms()
@@ -185,19 +191,31 @@ class Flame:
                 )
             })
 
+    def set_colour_scheme(self, scheme: str) -> None:
+        """Set the active colour scheme without changing the environment file."""
+        if scheme not in COLOUR_SCHEMES:
+            raise ValueError(f'Unknown colour scheme: {scheme}')
+
+        self.active_colour_scheme = scheme
+
+        if scheme == 'CYCLE':
+            self.colours = _COLOUR_SCHEME_COLOURS[COLOUR_SCHEMES[1]]
+        else:
+            self.colours = _COLOUR_SCHEME_COLOURS[scheme]
+
     def _get_random_colour(self) -> Colour:
         """Select a random colour based on defined probabilities."""
         return random.choices(
-            self.COLOURS,
-            weights=[c.p for c in self.COLOURS],
+            self.colours,
+            weights=[c.p for c in self.colours],
             k=1,
         )[0]
 
     def _get_random_flicker(self) -> Flicker:
         """Select a random flicker type based on defined probabilities."""
         return random.choices(
-            self.FLICKER,
-            weights=[f.p for f in self.FLICKER],
+            FLICKER,
+            weights=[f.p for f in FLICKER],
             k=1,
         )[0]
 
@@ -248,12 +266,12 @@ class Flame:
 
             if global_flicker:
                 state.target_brightness = self._get_target_brightness(
-                    self.GLOBAL_FLICKER.min_brightness,
-                    self.GLOBAL_FLICKER.max_brightness
+                    GLOBAL_FLICKER.min_brightness,
+                    GLOBAL_FLICKER.max_brightness
                 )
                 state.target_duration = self._get_target_duration(
-                    self.GLOBAL_FLICKER.min_ms,
-                    self.GLOBAL_FLICKER.max_ms
+                    GLOBAL_FLICKER.min_ms,
+                    GLOBAL_FLICKER.max_ms
                 )
 
             else:

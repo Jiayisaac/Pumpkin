@@ -7,7 +7,13 @@ import neopixel
 from adafruit_debouncer import Debouncer
 import digitalio
 
-from flame import Flame
+from flame import (
+    CANDLE_FLAME,
+    COLOUR_SCHEMES,
+    HELLFIRE,
+    INFERNAL_FLAME,
+    Flame,
+)
 from web.main import run_web_server
 from environment import ENVIRONMENT
 
@@ -30,23 +36,26 @@ button = Debouncer(pin)
 
 
 def on_button_pressed(flame: Flame):
-    """Handle the button press event to cycle through the flame's colour schemes."""
-    flame.ACTIVE_COLOUR_SCHEME = flame.COLOUR_SCHEMES[
-        (flame.COLOUR_SCHEMES.index(flame.ACTIVE_COLOUR_SCHEME) + 1) % len(flame.COLOUR_SCHEMES)
-        ]
-    if not flame.ACTIVE_COLOUR_SCHEME == 'CYCLE':
-        flame.COLOURS = flame.ACTIVE_COLOUR_SCHEME
+    """Handle a button press by cycling through the available colour schemes."""
+    current_index = COLOUR_SCHEMES.index(flame.active_colour_scheme)
+    next_index = (current_index + 1) % len(COLOUR_SCHEMES)
+    flame.set_colour_scheme(COLOUR_SCHEMES[next_index])
 
 
 def main():
     """Main loop for updating the Flame LED strip."""
     flame = Flame(pixels, LED_COUNT, CHANGE_COLOUR_PROBABILITY)
 
-    web_thread = threading.Thread(target=run_web_server, daemon=True)
+    web_thread = threading.Thread(
+        target=run_web_server,
+        args=(flame,),
+        daemon=True
+    )
     web_thread.start()
 
     cycle_started_at = time.monotonic()
     active_scheme_index = 1
+    previous_colour_scheme = flame.active_colour_scheme
 
     while True:
         button.update()
@@ -54,17 +63,28 @@ def main():
         if button.fell:
             on_button_pressed(flame)
 
-            if flame.ACTIVE_COLOUR_SCHEME == "CYCLE":
+        if flame.active_colour_scheme != previous_colour_scheme:
+            if flame.active_colour_scheme == 'CYCLE':
                 active_scheme_index = 1
-                flame.COLOURS = flame.COLOUR_SCHEMES[active_scheme_index]
+                flame.set_colour_scheme('CYCLE')
                 cycle_started_at = time.monotonic()
 
-        if flame.ACTIVE_COLOUR_SCHEME == "CYCLE":
+            previous_colour_scheme = flame.active_colour_scheme
+
+        if flame.active_colour_scheme == 'CYCLE':
             if time.monotonic() - cycle_started_at >= 30:
                 active_scheme_index += 1
-                if active_scheme_index >= len(flame.COLOUR_SCHEMES):
+
+                if active_scheme_index >= len(COLOUR_SCHEMES):
                     active_scheme_index = 1
-                flame.COLOURS = flame.COLOUR_SCHEMES[active_scheme_index]
+
+                # Keep CYCLE as the active mode while changing its displayed colours.
+                scheme = COLOUR_SCHEMES[active_scheme_index]
+                flame.colours = {
+                    'INFERNAL_FLAME': INFERNAL_FLAME,
+                    'CANDLE_FLAME': CANDLE_FLAME,
+                    'HELLFIRE': HELLFIRE,
+                }[scheme]
                 cycle_started_at = time.monotonic()
 
         flame.update()

@@ -32,6 +32,16 @@ RESTART_PAGE = """
             border-radius: 10px;
         }
 
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: #cccccc;
+            color: black;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
     </style>
 
 </head>
@@ -49,6 +59,13 @@ RESTART_PAGE = """
         <p>
             Reconnect once the device has restarted.
         </p>
+
+        <a
+            class="back"
+            href="/"
+        >
+            Back
+        </a>
 
     </div>
 
