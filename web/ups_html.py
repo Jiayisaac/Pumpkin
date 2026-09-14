@@ -147,7 +147,7 @@ UPS_PAGE = """
         <div class="navigation">
 
             <a href="/">
-                Configuration
+                Back
             </a>
 
         </div>

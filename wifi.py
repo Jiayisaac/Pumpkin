@@ -1,51 +1,86 @@
 """WiFi management for the Pumpkin project."""
+
 import subprocess
 import time
 
 
 class WiFi:
-    """Class to manage WiFi connections and hotspots for the Pumpkin project."""
+    """Manage WiFi connections and the Pumpkin setup hotspot."""
+
     INTERFACE = 'wlan0'
     HOTSPOT_NAME = 'Pumpkin-Setup'
     HOTSPOT_PASSWORD = 'pumpkin123'
+    CHECK_INTERVAL_SECS = 10
+    STARTUP_GRACE_SECS = 10
 
     @staticmethod
-    def _run(*args):
-        """Run a nmcli command and return the result."""
+    def _run(*args, check=True):
+        """Run an nmcli command and return the result."""
         return subprocess.run(
             ['nmcli', *args],
             capture_output=True,
             text=True,
-            check=True
+            check=check
         )
 
     @classmethod
-    def connected(cls):
-        """Check if the WiFi interface is connected to a network."""
-        result = subprocess.run(
-            [
-                'nmcli',
-                '-t',
-                '-f',
-                'DEVICE,STATE',
-                'device'
-            ],
-            capture_output=True,
-            text=True,
+    def active_connection(cls):
+        """Return the active connection name for wlan0, or None."""
+        result = cls._run(
+            '-t',
+            '-f',
+            'GENERAL.CONNECTION',
+            'device',
+            'show',
+            cls.INTERFACE,
             check=False
         )
 
-        return f'{cls.INTERFACE}:connected' in result.stdout
+        if result.returncode != 0:
+            return None
+
+        for line in result.stdout.splitlines():
+            if ':' not in line:
+                continue
+
+            _, connection = line.split(':', 1)
+            connection = connection.strip()
+
+            if connection and connection != '--':
+                return connection
+
+        return None
+
+    @classmethod
+    def connected(cls):
+        """Return True if wlan0 is connected to a normal WiFi network."""
+        connection = cls.active_connection()
+
+        return (
+            connection is not None
+            and connection != cls.HOTSPOT_NAME
+        )
+
+    @classmethod
+    def hotspot_active(cls):
+        """Return True if the Pumpkin setup hotspot is active."""
+        return cls.active_connection() == cls.HOTSPOT_NAME
 
     @classmethod
     def networks(cls):
-        """Scan for available WiFi networks and return a sorted list of SSIDs."""
+        """
+        Scan for available WiFi networks.
+
+        Multiple mesh access points advertising the same SSID
+        are returned as a single network.
+        """
         cls._run(
             'device',
             'wifi',
             'rescan',
             'ifname',
-            cls.INTERFACE
+            cls.INTERFACE,
+            check=False
         )
 
         time.sleep(2)
@@ -72,11 +107,36 @@ class WiFi:
         return sorted(networks)
 
     @classmethod
+    def configure_connection(cls, connection):
+        """
+        Configure a saved WiFi connection for reliable operation.
+
+        The connection:
+        - automatically reconnects after boot;
+        - is not locked to a particular BSSID / mesh node;
+        - has WiFi power saving disabled.
+        """
+        cls._run(
+            'connection',
+            'modify',
+            connection,
+            'connection.autoconnect',
+            'yes',
+            '802-11-wireless.bssid',
+            '',
+            '802-11-wireless.powersave',
+            '2'
+        )
+
+    @classmethod
     def connect(cls, ssid, password):
-        """Connect to a specified WiFi network using the given SSID and password."""
+        """
+        Connect to a WiFi network and configure it for automatic
+        reconnection and mesh operation.
+        """
         cls.stop_hotspot()
 
-        cls._run(
+        result = cls._run(
             'device',
             'wifi',
             'connect',
@@ -87,10 +147,31 @@ class WiFi:
             cls.INTERFACE
         )
 
+        connection = cls.active_connection()
+
+        if connection and connection != cls.HOTSPOT_NAME:
+            cls.configure_connection(connection)
+
+        return result
+
+    @classmethod
+    def configure_active_connection(cls):
+        """Apply preferred settings to the active normal WiFi connection."""
+        connection = cls.active_connection()
+
+        if (
+            connection is None
+            or connection == cls.HOTSPOT_NAME
+        ):
+            return False
+
+        cls.configure_connection(connection)
+        return True
+
     @classmethod
     def start_hotspot(cls):
-        """Start a WiFi hotspot with the predefined SSID and password if not already connected."""
-        if cls.connected():
+        """Start the setup hotspot if no normal WiFi connection exists."""
+        if cls.connected() or cls.hotspot_active():
             return
 
         cls._run(
@@ -109,14 +190,54 @@ class WiFi:
 
     @classmethod
     def stop_hotspot(cls):
-        """Stop the WiFi hotspot if it is currently active."""
-        subprocess.run(
-            [
-                'nmcli',
-                'connection',
-                'down',
-                cls.HOTSPOT_NAME
-            ],
-            capture_output=True,
+        """Stop the setup hotspot if it is active."""
+        cls._run(
+            'connection',
+            'down',
+            cls.HOTSPOT_NAME,
             check=False
         )
+
+    @classmethod
+    def service(cls):
+        """
+        Maintain WiFi availability.
+
+        On startup, allow NetworkManager time to reconnect to a saved
+        network. If that fails, start the Pumpkin setup hotspot.
+        """
+        time.sleep(cls.STARTUP_GRACE_SECS)
+
+        if cls.connected():
+            try:
+                cls.configure_active_connection()
+            except subprocess.CalledProcessError as error:
+                print(
+                    'Unable to configure WiFi connection: '
+                    f'{error.stderr.strip()}'
+                )
+        elif not cls.hotspot_active():
+            try:
+                cls.start_hotspot()
+            except subprocess.CalledProcessError as error:
+                print(
+                    'Unable to start WiFi hotspot: '
+                    f'{error.stderr.strip()}'
+                )
+
+        while True:
+            time.sleep(cls.CHECK_INTERVAL_SECS)
+
+            if cls.hotspot_active():
+                continue
+
+            if cls.connected():
+                continue
+
+            try:
+                cls.start_hotspot()
+            except subprocess.CalledProcessError as error:
+                print(
+                    'Unable to start WiFi hotspot: '
+                    f'{error.stderr.strip()}'
+                )
